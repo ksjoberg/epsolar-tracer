@@ -48,9 +48,13 @@
 #include <linux/usb.h>
 #include <linux/usb/cdc.h>
 #include <asm/byteorder.h>
-#include <asm/unaligned.h>
-#include <linux/list.h>
 #include "linux/version.h"
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,12,0)
+#include <linux/unaligned.h>
+#else
+#include <asm/unaligned.h>
+#endif
+#include <linux/list.h>
 
 #include "xr_usb_serial_common.h"
 #include "xr_usb_serial_ioctl.h"
@@ -643,8 +647,14 @@ static void xr_usb_serial_tty_close(struct tty_struct *tty, struct file *filp)
 	tty_port_close(&xr_usb_serial->port, tty, filp);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,6,0)
+static ssize_t xr_usb_serial_tty_write(struct tty_struct *tty,
+					const u8 *buf,
+					size_t count)
+#else
 static int xr_usb_serial_tty_write(struct tty_struct *tty,
 					const unsigned char *buf, int count)
+#endif
 {
 	struct xr_usb_serial *xr_usb_serial = tty->driver_data;
 	int stat;
